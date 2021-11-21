@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/makarychev13/archive/internal/buttons"
 	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
@@ -34,23 +33,5 @@ func (h *WaitTaskHandler) AddTask(c tele.Context) error {
 				},
 			},
 		},
-	})
-}
-
-//EndDay обрабатывает сообщение о завершении дня
-func (h *WaitTaskHandler) EndDay(c tele.Context) error {
-	if err := h.s.Clear(c.Message().Sender.ID); err != nil {
-		return err
-	}
-
-	if err := c.Send("День успешно завершён. Он был таким (+ прикреплённый файл)."); err != nil {
-		return err
-	}
-
-	reply := fmt.Sprintf("Отправьте \"<b>%v</b>\", чтобы начать конспектирование нового дня.", buttons.StartDay)
-
-	return c.Send(reply, &tele.SendOptions{
-		ParseMode: tele.ModeHTML,
-		ReplyMarkup: startDayButton,
 	})
 }

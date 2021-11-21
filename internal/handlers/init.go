@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/makarychev13/archive/internal/buttons"
-	"github.com/makarychev13/archive/internal/states"
 	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
@@ -37,31 +36,6 @@ func (h *InitHandler) StartCommunication(c tele.Context) error {
 	return c.Send(reply, &tele.SendOptions{
 		ParseMode:   tele.ModeHTML,
 		ReplyMarkup: startDayButton,
-	})
-}
-
-//StartDay обрабатывает сообщение о начале конспектирования нового дня
-func (h *InitHandler) StartDay(c tele.Context) error {
-	if err := h.s.Set(c.Message().Sender.ID, states.WaitTask); err != nil {
-		return err
-	}
-
-	return c.Send("Отлично! C чего начнём? Выберете один из вариантов ниже либо отправьте свой.", &tele.SendOptions{
-		ParseMode: tele.ModeHTML,
-		ReplyMarkup: &tele.ReplyMarkup{
-			ResizeKeyboard: true,
-			ReplyKeyboard: [][]tele.ReplyButton{
-				{
-					tele.ReplyButton{Text: "Душ"},
-					tele.ReplyButton{Text: "Еда"},
-					tele.ReplyButton{Text: "Работа"},
-					tele.ReplyButton{Text: "Дорога"},
-				},
-				{
-					tele.ReplyButton{Text: buttons.EndDay},
-				},
-			},
-		},
 	})
 }
 
