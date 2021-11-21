@@ -1,6 +1,9 @@
 package handlers
 
 import (
+	"fmt"
+
+	"github.com/makarychev13/archive/internal/buttons"
 	"github.com/makarychev13/archive/internal/states"
 	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
@@ -10,7 +13,7 @@ var startDayButton = &tele.ReplyMarkup{
 	ResizeKeyboard: true,
 	ReplyKeyboard: [][]tele.ReplyButton{
 		{
-			tele.ReplyButton{Text: "Начать день"},
+			tele.ReplyButton{Text: buttons.StartDay},
 		},
 		{
 			tele.ReplyButton{Text: "Посмотреть отчёт"},
@@ -22,7 +25,6 @@ type InitHandler struct {
 	s storage.Storage
 }
 
-
 //NewInitHandler создаёт новый обработчик сообщений
 func NewInitHandler(s storage.Storage) InitHandler {
 	return InitHandler{s}
@@ -30,8 +32,10 @@ func NewInitHandler(s storage.Storage) InitHandler {
 
 //StartCommunication обрабатывает первое сообщение пользователя
 func (h *InitHandler) StartCommunication(c tele.Context) error {
-	return c.Send("Привет! Я буду записывать все твои дела в течение дня. Отправь мне <b>\"Начать день\"</b>, чтобы приступить к записи.", &tele.SendOptions{
-		ParseMode: tele.ModeHTML,
+	reply := fmt.Sprintf("Привет! Я буду записывать все твои дела в течение дня. Отправь мне \"<b>%v</b>\", чтобы приступить к записи.", buttons.StartDay)
+
+	return c.Send(reply, &tele.SendOptions{
+		ParseMode:   tele.ModeHTML,
 		ReplyMarkup: startDayButton,
 	})
 }
@@ -54,7 +58,7 @@ func (h *InitHandler) StartDay(c tele.Context) error {
 					tele.ReplyButton{Text: "Дорога"},
 				},
 				{
-					tele.ReplyButton{Text: "Завершить день"},
+					tele.ReplyButton{Text: buttons.EndDay},
 				},
 			},
 		},
@@ -63,8 +67,10 @@ func (h *InitHandler) StartDay(c tele.Context) error {
 
 //RequireValidText обрабатывает сообщение о невалидном текстовом сообщении
 func (h *InitHandler) RequireValidText(c tele.Context) error {
-	return c.Send("Чтобы начать, отправь мне <b>\"Начать день</b>\"", &tele.SendOptions{
-		ParseMode: tele.ModeHTML,
+	reply := fmt.Sprintf("Чтобы начать, отправь мне \"<b>%v</b>\"", buttons.StartDay)
+
+	return c.Send(reply, &tele.SendOptions{
+		ParseMode:   tele.ModeHTML,
 		ReplyMarkup: startDayButton,
 	})
 }

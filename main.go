@@ -4,6 +4,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/makarychev13/archive/internal/buttons"
 	"github.com/makarychev13/archive/internal/handlers"
 	"github.com/makarychev13/archive/internal/states"
 	"github.com/makarychev13/archive/pkg/sm"
@@ -23,17 +24,17 @@ func main() {
 
 	s := storage.NewInMemory()
 
-	start := handlers.NewInitHandler(s)
-	waitTaskHandler := handlers.NewWaitTaskHandler(s)
+	initHandler := handlers.NewInitHandler(s)
+	tasksHandler := handlers.NewWaitTaskHandler(s)
 
 	init := sm.NewEmptyState()
-	init.On("/start", start.StartCommunication)
-	init.On("Начать день", start.StartDay)
-	init.OnText(start.RequireValidText)
+	init.On("/start", initHandler.StartCommunication)
+	init.On(buttons.StartDay, initHandler.StartDay)
+	init.OnText(initHandler.RequireValidText)
 
 	waitTask := sm.NewState(states.WaitTask)
-	waitTask.On("Завершить день", waitTaskHandler.EndDay)
-	waitTask.OnText(waitTaskHandler.AddTask)
+	waitTask.On(buttons.EndDay, tasksHandler.EndDay)
+	waitTask.OnText(tasksHandler.AddTask)
 
 	fsm := sm.NewMachine(s, b)
 	fsm.Register(waitTask, init)

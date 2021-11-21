@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/makarychev13/archive/internal/buttons"
 	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
@@ -46,7 +47,9 @@ func (h *WaitTaskHandler) EndDay(c tele.Context) error {
 		return err
 	}
 
-	return c.Send("Отправьте <b>Начать день</b>, чтобы начать конспектирование дня.", &tele.SendOptions{
+	reply := fmt.Sprintf("Отправьте \"<b>%v</b>\", чтобы начать конспектирование нового дня.", buttons.StartDay)
+
+	return c.Send(reply, &tele.SendOptions{
 		ParseMode: tele.ModeHTML,
 		ReplyMarkup: startDayButton,
 	})
