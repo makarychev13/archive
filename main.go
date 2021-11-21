@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/makarychev13/archive/internal/handlers"
+	"github.com/makarychev13/archive/internal/states"
 	"github.com/makarychev13/archive/pkg/sm"
 	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
@@ -24,25 +25,18 @@ func main() {
 
 	start := handlers.NewInitHandler(s)
 	waitTaskHandler := handlers.NewWaitTaskHandler(s)
-	reportHandler := handlers.NewReportHandler(s)
 
 	init := sm.NewEmptyState()
 	init.On("/start", start.StartCommunication)
 	init.On("Начать день", start.StartDay)
 	init.OnText(start.RequireValidText)
 
-	waitTask := sm.NewState("waitTask")
+	waitTask := sm.NewState(states.WaitTask)
 	waitTask.On("Завершить день", waitTaskHandler.EndDay)
 	waitTask.OnText(waitTaskHandler.AddTask)
 
-	waitReport := sm.NewState("waitReport")
-	waitReport.On("Markdown", reportHandler.CreateMd)
-	waitReport.On("Текст", reportHandler.CreateTxt)
-	waitReport.On("Не надо", reportHandler.No)
-	waitReport.On("Начать день", start.StartDay)
-
 	fsm := sm.NewMachine(s, b)
-	fsm.Register(waitTask, init, waitReport)
+	fsm.Register(waitTask, init)
 	fsm.Start()
 
 	log.Println("Бот успешно запущен")

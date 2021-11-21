@@ -38,23 +38,16 @@ func (h *WaitTaskHandler) AddTask(c tele.Context) error {
 
 //EndDay обрабатывает сообщение о завершении дня
 func (h *WaitTaskHandler) EndDay(c tele.Context) error {
-	if err := h.s.Set(c.Sender().ID, "waitReport"); err != nil {
+	if err := h.s.Clear(c.Message().Sender.ID); err != nil {
 		return err
 	}
 
-	return c.Send("День успешно завершён. Если хотите, можете выгрузить отчёт.", &tele.SendOptions{
-		ReplyMarkup: &tele.ReplyMarkup{
-			ResizeKeyboard: true,
-			ReplyKeyboard: [][]tele.ReplyButton{
-				{
-					tele.ReplyButton{Text: "Markdown"},
-					tele.ReplyButton{Text: "Текст"},
-					tele.ReplyButton{Text: "Не надо"},
-				},
-				{
-					tele.ReplyButton{Text: "Начать новый день"},
-				},
-			},
-		},
+	if err := c.Send("День успешно завершён. Он был таким (+ прикреплённый файл)."); err != nil {
+		return err
+	}
+
+	return c.Send("Отправьте <b>Начать день</b>, чтобы начать конспектирование дня.", &tele.SendOptions{
+		ParseMode: tele.ModeHTML,
+		ReplyMarkup: startDayButton,
 	})
 }

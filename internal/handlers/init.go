@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/makarychev13/archive/internal/states"
 	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
@@ -10,6 +11,9 @@ var startDayButton = &tele.ReplyMarkup{
 	ReplyKeyboard: [][]tele.ReplyButton{
 		{
 			tele.ReplyButton{Text: "Начать день"},
+		},
+		{
+			tele.ReplyButton{Text: "Посмотреть отчёт"},
 		},
 	},
 }
@@ -34,7 +38,7 @@ func (h *InitHandler) StartCommunication(c tele.Context) error {
 
 //StartDay обрабатывает сообщение о начале конспектирования нового дня
 func (h *InitHandler) StartDay(c tele.Context) error {
-	if err := h.s.Set(c.Message().Sender.ID, "waitTask"); err != nil {
+	if err := h.s.Set(c.Message().Sender.ID, states.WaitTask); err != nil {
 		return err
 	}
 
