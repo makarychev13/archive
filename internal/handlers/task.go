@@ -8,6 +8,10 @@ import (
 	tele "gopkg.in/tucnak/telebot.v3"
 )
 
+var (
+	moscowTZ = time.FixedZone("UTC+3", 3*60*60)
+)
+
 type WaitTaskHandler struct {
 	s storage.Storage
 }
@@ -18,7 +22,9 @@ func NewWaitTaskHandler(s storage.Storage) WaitTaskHandler {
 
 //AddTask обрабатывает сообщение о добавлении нового задания
 func (h *WaitTaskHandler) AddTask(c tele.Context) error {
-	reply := fmt.Sprintf("<b>%v</b>\n\nНачало: %v", c.Text(), time.Now())
+	now := time.Now().UTC().In(moscowTZ)
+
+	reply := fmt.Sprintf("<b>%v</b>\n\nНачало: %v", c.Text(), fmt.Sprintf("%v:%v", now.Hour(), now.Minute()))
 
 	return c.Send(reply, &tele.SendOptions{
 		ParseMode: tele.ModeHTML,
@@ -26,10 +32,16 @@ func (h *WaitTaskHandler) AddTask(c tele.Context) error {
 			Selective: true,
 			InlineKeyboard: [][]tele.InlineButton{
 				{
-					tele.InlineButton{Text: "Завершить"},
+					tele.InlineButton{
+						Text: "Завершить",
+						Data: "Дата",
+					},
 				},
 				{
-					tele.InlineButton{Text: "Отменить"},
+					tele.InlineButton{
+						Text: "Отменить",
+						Data: "Дата",
+					},
 				},
 			},
 		},
