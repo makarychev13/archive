@@ -81,7 +81,6 @@ func (s *Machine) makeCallbackHandler() func(ctx tele.Context) error {
 		}
 
 		if handler, ok := s.handlers[state]; ok {
-
 			if callback, ok := handler.callbackHandlers[text[0]]; ok {
 				return callback(ctx)
 			}

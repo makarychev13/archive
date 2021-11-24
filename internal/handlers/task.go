@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/makarychev13/archive/internal/buttons"
@@ -54,13 +53,16 @@ func (h *TaskHandler) AddTask(c tele.Context) error {
 }
 
 func (h *TaskHandler) Cancel(c tele.Context) error {
-	fmt.Printf("Отменили таску %v", strings.Split(c.Callback().Data, "|")[1])
-
 	return nil
 }
 
 func (h *TaskHandler) Complete(c tele.Context) error {
-	fmt.Printf("Завершили таску %v", strings.Split(c.Callback().Data, "|")[1])
+	now := time.Now().UTC().In(moscowTZ)
+	reply := fmt.Sprintf("%v/nКонец: %v", c.Text(), now)
+
+	if _, err := c.Bot().Edit(c.Message(), reply, &tele.SendOptions{ParseMode: tele.ModeHTML}); err != nil {
+		return err
+	}
 
 	return nil
 }
