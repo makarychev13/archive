@@ -4,11 +4,19 @@ import (
 	tele "gopkg.in/tucnak/telebot.v3"
 )
 
+const (
+	name kind = iota
+	empty
+	common
+)
+
+type kind int
 type msgText = string
 type callbackText = string
 
 type State struct {
 	name    string
+	kind    kind
 	handler handler
 }
 
@@ -20,16 +28,25 @@ type handler struct {
 
 //NewState создаёт новый стейт
 func NewState(s string) State {
-	return State{s, handler{
+	return State{s, name, handler{
 		map[msgText]tele.HandlerFunc{},
 		map[callbackText]tele.HandlerFunc{},
 		nil,
 	}}
 }
 
-//NewEmptyState создаёт пустой стейт
+//NewEmptyState создаёт пустой стейт. Обработчики из этого стейта вызываются тогда, когда у пользователя нет стейта
 func NewEmptyState() State {
-	return State{"", handler{
+	return State{"", empty, handler{
+		map[msgText]tele.HandlerFunc{},
+		map[callbackText]tele.HandlerFunc{},
+		nil,
+	}}
+}
+
+//NewCommonState создаёт абсолютный стейт. Обработчики из этого стейта вызываются в первую очередь
+func NewCommonState() State {
+	return State{"", common, handler{
 		map[msgText]tele.HandlerFunc{},
 		map[callbackText]tele.HandlerFunc{},
 		nil,
@@ -45,5 +62,5 @@ func (s *State) OnText(f tele.HandlerFunc) {
 }
 
 func (s *State) OnCallback(msg string, f tele.HandlerFunc) {
-	s.handler.callbackHandlers["\f" + msg] = f
+	s.handler.callbackHandlers["\f"+msg] = f
 }

@@ -12,18 +12,23 @@ type stateName = string
 type HandlersMap = map[stateName]handler
 
 type Machine struct {
-	storage storage.Storage
-	bot     *tele.Bot
+	storage  storage.Storage
+	bot      *tele.Bot
 	handlers HandlersMap
+	common   *handler
 }
 
 func NewMachine(s storage.Storage, b *tele.Bot) Machine {
-	return Machine{s, b, HandlersMap{}}
+	return Machine{s, b, HandlersMap{}, nil}
 }
 
 func (s *Machine) Register(states ...State) {
 	for _, v := range states {
-		s.handlers[v.name] = v.handler
+		if v.kind != common {
+			s.handlers[v.name] = v.handler
+		} else {
+			s.common = &v.handler
+		}
 	}
 }
 
@@ -35,6 +40,14 @@ func (s *Machine) Start() {
 
 func (s *Machine) makeTextHandler() func(ctx tele.Context) error {
 	return func(ctx tele.Context) error {
+		if s.common != nil {
+			if handler, ok := s.common.textHandlers[ctx.Text()]; ok {
+				return handler(ctx)
+			} else if s.common.elseTextHandler != nil {
+				return s.common.elseTextHandler(ctx)
+			}
+		}
+
 		state, err := s.storage.Current(ctx.Message().Sender.ID)
 		if err != nil {
 			return fmt.Errorf("не удалось получить текущий стейт пользователя %v: %w", ctx.Message().Sender.ID, err)
@@ -54,13 +67,21 @@ func (s *Machine) makeTextHandler() func(ctx tele.Context) error {
 
 func (s *Machine) makeCallbackHandler() func(ctx tele.Context) error {
 	return func(ctx tele.Context) error {
+		text := strings.Split(ctx.Callback().Data, "|")
+
+		if s.common != nil {
+			if handler, ok := s.common.callbackHandlers[text[0]]; ok {
+				return handler(ctx)
+			}
+		}
+
 		state, err := s.storage.Current(ctx.Callback().Sender.ID)
 		if err != nil {
 			return fmt.Errorf("не удалось получить текущий стейт пользователя %v: %w", ctx.Message().Sender.ID, err)
 		}
 
 		if handler, ok := s.handlers[state]; ok {
-			text := strings.Split(ctx.Callback().Data, "|")
+
 			if callback, ok := handler.callbackHandlers[text[0]]; ok {
 				return callback(ctx)
 			}

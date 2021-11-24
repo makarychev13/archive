@@ -54,13 +54,13 @@ func (h *TaskHandler) AddTask(c tele.Context) error {
 }
 
 func (h *TaskHandler) Cancel(c tele.Context) error {
-	fmt.Printf("Отменили таску %v", strings.Split(c.Callback().Data, "|")[0])
+	fmt.Printf("Отменили таску %v", strings.Split(c.Callback().Data, "|")[1])
 
 	return nil
 }
 
 func (h *TaskHandler) Complete(c tele.Context) error {
-	fmt.Printf("Отменили таску %v", strings.Split(c.Callback().Data, "|")[0])
+	fmt.Printf("Завершили таску %v", strings.Split(c.Callback().Data, "|")[1])
 
 	return nil
 }

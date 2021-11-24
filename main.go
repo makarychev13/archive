@@ -34,6 +34,10 @@ func main() {
 	tasksHandler := handlers.NewTaskHandler(s)
 	dayHandler := handlers.NewDayHandler(s)
 
+	common := sm.NewCommonState()
+	common.OnCallback(buttons.CancelTask, tasksHandler.Cancel)
+	//common.OnCallback(buttons.CompleteTask, tasksHandler.Complete)
+
 	init := sm.NewEmptyState()
 	init.On("/start", initHandler.StartCommunication)
 	init.On(buttons.StartDay, dayHandler.StartDay)
@@ -42,10 +46,9 @@ func main() {
 	waitTask := sm.NewState(states.WaitTask)
 	waitTask.On(buttons.EndDay, dayHandler.EndDay)
 	waitTask.OnText(tasksHandler.AddTask)
-	waitTask.OnCallback(buttons.CancelTask, tasksHandler.Cancel)
 	waitTask.OnCallback(buttons.CompleteTask, tasksHandler.Complete)
 
 	fsm := sm.NewMachine(s, b)
-	fsm.Register(waitTask, init)
+	fsm.Register(waitTask, init, common)
 	fsm.Start()
 }
