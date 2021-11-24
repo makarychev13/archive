@@ -2,29 +2,32 @@ package handlers
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/makarychev13/archive/internal/buttons"
 	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
 
 var (
 	moscowTZ = time.FixedZone("UTC+3", 3*60*60)
+	timeFormat = "15:04"
 )
 
-type WaitTaskHandler struct {
+type TaskHandler struct {
 	s storage.Storage
 }
 
-func NewWaitTaskHandler(s storage.Storage) WaitTaskHandler {
-	return WaitTaskHandler{s}
+func NewTaskHandler(s storage.Storage) TaskHandler {
+	return TaskHandler{s}
 }
 
 //AddTask обрабатывает сообщение о добавлении нового задания
-func (h *WaitTaskHandler) AddTask(c tele.Context) error {
+func (h *TaskHandler) AddTask(c tele.Context) error {
 	now := time.Now().UTC().In(moscowTZ)
 
-	reply := fmt.Sprintf("<b>%v</b>\n\nНачало: %v", c.Text(), fmt.Sprintf("%v:%v", now.Hour(), now.Minute()))
+	reply := fmt.Sprintf("<b>%v</b>\n\nНачало: %v", c.Text(), now.Format(timeFormat))
 
 	return c.Send(reply, &tele.SendOptions{
 		ParseMode: tele.ModeHTML,
@@ -33,17 +36,31 @@ func (h *WaitTaskHandler) AddTask(c tele.Context) error {
 			InlineKeyboard: [][]tele.InlineButton{
 				{
 					tele.InlineButton{
-						Text: "Завершить",
-						Data: "Дата",
+						Text: buttons.CompleteTask,
+						Unique: buttons.CompleteTask,
+						Data: "123",
 					},
 				},
 				{
 					tele.InlineButton{
-						Text: "Отменить",
-						Data: "Дата",
+						Text: buttons.CancelTask,
+						Unique: buttons.CancelTask,
+						Data: "999",
 					},
 				},
 			},
 		},
 	})
+}
+
+func (h *TaskHandler) Cancel(c tele.Context) error {
+	fmt.Printf("Отменили таску %v", strings.Split(c.Callback().Data, "|")[0])
+
+	return nil
+}
+
+func (h *TaskHandler) Complete(c tele.Context) error {
+	fmt.Printf("Отменили таску %v", strings.Split(c.Callback().Data, "|")[0])
+
+	return nil
 }

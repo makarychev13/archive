@@ -2,6 +2,7 @@ package sm
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
@@ -27,23 +28,44 @@ func (s *Machine) Register(states ...State) {
 }
 
 func (s *Machine) Start() {
-	s.bot.Handle(tele.OnText, func(context tele.Context) error {
-		currName, err := s.storage.Current(context.Message().Sender.ID)
+	s.bot.Handle(tele.OnText, s.makeTextHandler())
+	s.bot.Handle(tele.OnCallback, s.makeCallbackHandler())
+	s.bot.Start()
+}
+
+func (s *Machine) makeTextHandler() func(ctx tele.Context) error {
+	return func(ctx tele.Context) error {
+		state, err := s.storage.Current(ctx.Message().Sender.ID)
 		if err != nil {
-			return fmt.Errorf("не удалось получить текущий стейт пользователя %v: %w", context.Message().Sender.ID, err)
+			return fmt.Errorf("не удалось получить текущий стейт пользователя %v: %w", ctx.Message().Sender.ID, err)
 		}
 
-		curr, ok := s.handlers[currName]
-		if ok {
-			if callback, ok := curr.textHandlers[context.Text()]; ok {
-				return callback(context)
-			} else if curr.elseHandler != nil {
-				return s.handlers[currName].elseHandler(context)
+		if handler, ok := s.handlers[state]; ok {
+			if callback, ok := handler.textHandlers[ctx.Text()]; ok {
+				return callback(ctx)
+			} else if handler.elseTextHandler != nil {
+				return s.handlers[state].elseTextHandler(ctx)
 			}
 		}
 
 		return nil
-	})
+	}
+}
 
-	s.bot.Start()
+func (s *Machine) makeCallbackHandler() func(ctx tele.Context) error {
+	return func(ctx tele.Context) error {
+		state, err := s.storage.Current(ctx.Callback().Sender.ID)
+		if err != nil {
+			return fmt.Errorf("не удалось получить текущий стейт пользователя %v: %w", ctx.Message().Sender.ID, err)
+		}
+
+		if handler, ok := s.handlers[state]; ok {
+			text := strings.Split(ctx.Callback().Data, "|")
+			if callback, ok := handler.callbackHandlers[text[0]]; ok {
+				return callback(ctx)
+			}
+		}
+
+		return nil
+	}
 }

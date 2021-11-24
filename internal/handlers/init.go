@@ -14,9 +14,6 @@ var startDayButton = &tele.ReplyMarkup{
 		{
 			tele.ReplyButton{Text: buttons.StartDay},
 		},
-		{
-			tele.ReplyButton{Text: buttons.GetReport},
-		},
 	},
 }
 

@@ -23,7 +23,7 @@ func (h *DayHandler) EndDay(c tele.Context) error {
 		return err
 	}
 
-	if err := c.Send("День успешно завершён. Он был таким (+ прикреплённый файл)."); err != nil {
+	if err := c.Send("День завершён. Он был таким (+ прикреплённый файл)."); err != nil {
 		return err
 	}
 
@@ -54,6 +54,7 @@ func (h *DayHandler) StartDay(c tele.Context) error {
 				},
 				{
 					tele.ReplyButton{Text: buttons.EndDay},
+					tele.ReplyButton{Text: buttons.Settings},
 				},
 			},
 		},
