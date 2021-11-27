@@ -15,8 +15,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Не удалось загрузить конфиг: %v", err)
 	}
 
