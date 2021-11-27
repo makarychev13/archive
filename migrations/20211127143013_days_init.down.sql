@@ -1,1 +1,1 @@
-drop table if exists "days"
+drop table if exists "days";

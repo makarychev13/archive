@@ -5,4 +5,4 @@ create table if not exists "days"(
     "start" time with time zone not null,
     "end" time with time zone null,
     UNIQUE("telegram_id", "date")
-)
+);
