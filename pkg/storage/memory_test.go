@@ -1,11 +1,13 @@
 package storage
 
-import "testing"
+import (
+	"testing"
+)
 
 func Test_Set_NewEntity_Success(t *testing.T) {
 	const (
 		state = "test"
-		entityId = 0
+		entityId = 5
 	)
 
 	storage := NewInMemory()
@@ -15,7 +17,7 @@ func Test_Set_NewEntity_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Set(\"%v\") вернул ошибку: \"%v\"", state, err)
 	}
-	if currState := storage.states[entityId]; currState != state {
+	if currState, _ := storage.states[entityId]; currState != state {
 		t.Fatalf("Set(\"%v\") отработал правильно, но текущее значение стейта равно \"%v\"", state, currState)
 	}
 }
@@ -38,7 +40,7 @@ func Test_Set_ExistEntity_Success(t *testing.T) {
 	if err2 != nil {
 		t.Fatalf("Set(%v, \"%v\") вернул ошибку: \"%v\"", entityId, prevState, err2)
 	}
-	if currState := storage.states[entityId]; currState != newState {
+	if currState, _ := storage.states[entityId]; currState != newState {
 		t.Fatalf("Set(%v, \"%v\") отработал правильно, но текущее значение стейта равно \"%v\"", entityId, newState, currState)
 	}
 }
@@ -51,14 +53,11 @@ func Test_Clear_ExistEntity_Success(t *testing.T) {
 
 	storage := NewInMemory()
 
-	errSet := storage.Set(entityId, state)
-	errClear := storage.Clear(entityId)
+	storage.states[entityId] = state
+	err := storage.Clear(entityId)
 
-	if errSet != nil {
-		t.Fatalf("Set(%v, \"%v\") вернул ошибку: \"%v\"", entityId, state, errSet)
-	}
-	if errClear != nil {
-		t.Fatalf("Clear(%v) вернул ошибку: %v", entityId, errClear)
+	if err != nil {
+		t.Fatalf("Clear(%v) вернул ошибку: %v", entityId, err)
 	}
 	if currState, ok := storage.states[entityId]; ok {
 		t.Fatalf("Clear(%v) отработал правильно, но текущее значение стейта непустое: \"%v\"", entityId, currState)
