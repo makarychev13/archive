@@ -5,24 +5,24 @@ import (
 	"time"
 
 	"github.com/makarychev13/archive/internal/buttons"
-	"github.com/makarychev13/archive/pkg/storage"
+	"github.com/makarychev13/archive/pkg/state"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
 
 var (
-	moscowTZ = time.FixedZone("UTC+3", 3*60*60)
+	moscowTZ   = time.FixedZone("UTC+3", 3*60*60)
 	timeFormat = "15:04"
 )
 
 type TaskHandler struct {
-	s storage.Storage
+	s state.Storage
 }
 
-func NewTaskHandler(s storage.Storage) TaskHandler {
+func NewTaskHandler(s state.Storage) TaskHandler {
 	return TaskHandler{s}
 }
 
-//AddTask обрабатывает сообщение о добавлении нового задания
+//AddTask обрабатывает сообщение о добавлении нового задания.
 func (h *TaskHandler) AddTask(c tele.Context) error {
 	now := time.Now().UTC().In(moscowTZ)
 
@@ -35,16 +35,16 @@ func (h *TaskHandler) AddTask(c tele.Context) error {
 			InlineKeyboard: [][]tele.InlineButton{
 				{
 					tele.InlineButton{
-						Text: buttons.CompleteTask,
+						Text:   buttons.CompleteTask,
 						Unique: buttons.CompleteTask,
-						Data: "123",
+						Data:   "123",
 					},
 				},
 				{
 					tele.InlineButton{
-						Text: buttons.CancelTask,
+						Text:   buttons.CancelTask,
 						Unique: buttons.CancelTask,
-						Data: "999",
+						Data:   "999",
 					},
 				},
 			},

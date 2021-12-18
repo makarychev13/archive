@@ -1,12 +1,17 @@
 package repository
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
-type DayID = int64
+var (
+	ErrDayAlreadyCompleted = errors.New("день уже завершён")
+)
 
 type Days interface {
-	New(telegramID int64, date time.Time) error
-	ActiveDay(telegramID int64) (*DayID, error)
+	Save(telegramID int64, date time.Time) error
+	CompleteDay(telegramID int64, date, end time.Time) error
 }
 
 type Tasks interface {

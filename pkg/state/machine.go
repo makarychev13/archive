@@ -1,27 +1,29 @@
-package sm
+package state
 
 import (
 	"fmt"
 	"strings"
 
-	"github.com/makarychev13/archive/pkg/storage"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
 
 type stateName = string
 type HandlersMap = map[stateName]handler
 
+//Machine отвечает за регистрацию стейтов и выбор стейта при обработке сообщения.
 type Machine struct {
-	storage  storage.Storage
-	bot      *tele.Bot
+	storage Storage
+	bot     *tele.Bot
 	handlers HandlersMap
 	common   *handler
 }
 
-func NewMachine(s storage.Storage, b *tele.Bot) Machine {
+//NewMachine создаёт стейт-машину.
+func NewMachine(s Storage, b *tele.Bot) Machine {
 	return Machine{s, b, HandlersMap{}, nil}
 }
 
+//Register регистрирует стейты.
 func (s *Machine) Register(states ...State) {
 	for _, v := range states {
 		if v.kind != common {
@@ -32,6 +34,7 @@ func (s *Machine) Register(states ...State) {
 	}
 }
 
+//Start запускает бота и регистрирует в нём обработчики сообщений.
 func (s *Machine) Start() {
 	s.bot.Handle(tele.OnText, s.makeTextHandler())
 	s.bot.Handle(tele.OnCallback, s.makeCallbackHandler())

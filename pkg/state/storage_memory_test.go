@@ -1,35 +1,37 @@
-package storage
+package state
 
 import (
 	"testing"
+
+	"github.com/brianvoe/gofakeit/v6"
 )
 
 func Test_Set_NewEntity_Success(t *testing.T) {
-	const (
-		state = "test"
-		entityId = 5
+	var (
+		state    = gofakeit.LetterN(10)
+		entityId = gofakeit.Int64()
 	)
 
-	storage := NewInMemory()
+	storage := NewMemoryStorage()
 
 	err := storage.Set(entityId, state)
 
 	if err != nil {
-		t.Fatalf("Set(\"%v\") вернул ошибку: \"%v\"", state, err)
+		t.Fatalf("Set(%v, \"%v\") вернул ошибку: \"%v\"", entityId, state, err)
 	}
 	if currState, _ := storage.states[entityId]; currState != state {
-		t.Fatalf("Set(\"%v\") отработал правильно, но текущее значение стейта равно \"%v\"", state, currState)
+		t.Fatalf("Set(%v, \"%v\") отработал правильно, но текущее значение стейта равно \"%v\"", entityId, state, currState)
 	}
 }
 
 func Test_Set_ExistEntity_Success(t *testing.T) {
-	const (
-		prevState = "test"
-		newState = "test2"
-		entityId = 0
+	var (
+		prevState = gofakeit.LetterN(10)
+		newState  = gofakeit.LetterN(10)
+		entityId  = gofakeit.Int64()
 	)
 
-	storage := NewInMemory()
+	storage := NewMemoryStorage()
 
 	err1 := storage.Set(entityId, prevState)
 	err2 := storage.Set(entityId, newState)
@@ -46,12 +48,12 @@ func Test_Set_ExistEntity_Success(t *testing.T) {
 }
 
 func Test_Clear_ExistEntity_Success(t *testing.T) {
-	const (
-		state = "test"
-		entityId = 0
+	var (
+		state    = gofakeit.LetterN(10)
+		entityId = gofakeit.Int64()
 	)
 
-	storage := NewInMemory()
+	storage := NewMemoryStorage()
 
 	storage.states[entityId] = state
 	err := storage.Clear(entityId)
@@ -65,9 +67,9 @@ func Test_Clear_ExistEntity_Success(t *testing.T) {
 }
 
 func Test_Clear_NotExistEntity_Success(t *testing.T) {
-	const entityId = 0
+	entityId := gofakeit.Int64()
 
-	storage := NewInMemory()
+	storage := NewMemoryStorage()
 
 	err := storage.Clear(entityId)
 
@@ -80,9 +82,9 @@ func Test_Clear_NotExistEntity_Success(t *testing.T) {
 }
 
 func Test_Current_NotExistEntity_EmptyState(t *testing.T) {
-	const entityId = 1
+	entityId := gofakeit.Int64()
 
-	storage := NewInMemory()
+	storage := NewMemoryStorage()
 
 	state, err := storage.Current(entityId)
 
@@ -95,12 +97,12 @@ func Test_Current_NotExistEntity_EmptyState(t *testing.T) {
 }
 
 func Test_Current_ExistEntity_Success(t *testing.T) {
-	const (
-		entityId = 10
-		state = "test"
+	var (
+		entityId = gofakeit.Int64()
+		state    = gofakeit.LetterN(10)
 	)
 
-	storage := NewInMemory()
+	storage := NewMemoryStorage()
 	storage.states[entityId] = state
 
 	currState, err := storage.Current(entityId)

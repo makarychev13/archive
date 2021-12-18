@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/makarychev13/archive/internal/buttons"
-	"github.com/makarychev13/archive/pkg/storage"
+	"github.com/makarychev13/archive/pkg/state"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
 
@@ -18,15 +18,15 @@ var startDayButton = &tele.ReplyMarkup{
 }
 
 type InitHandler struct {
-	s storage.Storage
+	s state.Storage
 }
 
-//NewInitHandler создаёт новый обработчик сообщений
-func NewInitHandler(s storage.Storage) InitHandler {
+//NewInitHandler создаёт новый обработчик сообщений.
+func NewInitHandler(s state.Storage) InitHandler {
 	return InitHandler{s}
 }
 
-//StartCommunication обрабатывает первое сообщение пользователя
+//StartCommunication обрабатывает первое сообщение пользователя.
 func (h *InitHandler) StartCommunication(c tele.Context) error {
 	reply := fmt.Sprintf("Привет! Я буду записывать все твои дела в течение дня. Отправь мне \"<b>%v</b>\", чтобы приступить к записи.", buttons.StartDay)
 
@@ -36,7 +36,7 @@ func (h *InitHandler) StartCommunication(c tele.Context) error {
 	})
 }
 
-//RequireValidText обрабатывает сообщение о невалидном текстовом сообщении
+//RequireValidText обрабатывает сообщение о невалидном текстовом сообщении.
 func (h *InitHandler) RequireValidText(c tele.Context) error {
 	reply := fmt.Sprintf("Чтобы начать, отправь мне \"<b>%v</b>\"", buttons.StartDay)
 

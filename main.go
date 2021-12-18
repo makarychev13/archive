@@ -11,15 +11,17 @@ import (
 	"github.com/makarychev13/archive/internal/handlers"
 	"github.com/makarychev13/archive/internal/repository"
 	"github.com/makarychev13/archive/internal/states"
-	"github.com/makarychev13/archive/pkg/sm"
-	"github.com/makarychev13/archive/pkg/storage"
+	"github.com/makarychev13/archive/pkg/ctx"
+	"github.com/makarychev13/archive/pkg/state"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	tele "gopkg.in/tucnak/telebot.v3"
 )
 
 func main() {
 	logConfig := zap.NewDevelopmentConfig()
 	logConfig.DisableStacktrace = true
+	logConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	logBuilder, _ := logConfig.Build()
 	defer logBuilder.Sync()
 
@@ -41,27 +43,29 @@ func main() {
 		logger.Fatalf("Не удалось подключиться к БД: %v", err)
 	}
 
-	s := storage.NewInMemory()
+	s := state.NewMemoryStorage()
+	c := ctx.NewMemoryStorage()
 	daysRepository := repository.NewDaysRepository(pool)
 
 	initHandler := handlers.NewInitHandler(s)
 	tasksHandler := handlers.NewTaskHandler(s)
-	dayHandler := handlers.NewDayHandler(s, daysRepository, *logger)
+	dayHandler := handlers.NewDayHandler(s, daysRepository, *logger, c)
 
-	common := sm.NewCommonState()
+	common := state.NewCommonState()
 	common.OnCallback(buttons.CancelTask, tasksHandler.Cancel)
 	common.OnCallback(buttons.CompleteTask, tasksHandler.Complete)
 
-	init := sm.NewEmptyState()
+	init := state.NewEmptyState()
 	init.On("/start", initHandler.StartCommunication)
 	init.On(buttons.StartDay, dayHandler.StartDay)
 	init.OnText(initHandler.RequireValidText)
 
-	waitTask := sm.NewState(states.WaitTask)
+	waitTask := state.NewState(states.WaitTask)
 	waitTask.On(buttons.EndDay, dayHandler.EndDay)
+	waitTask.On(buttons.StartDay, dayHandler.DayAlreadyStarted)
 	waitTask.OnText(tasksHandler.AddTask)
 
-	fsm := sm.NewMachine(s, b)
+	fsm := state.NewMachine(s, b)
 	fsm.Register(waitTask, init, common)
 	fsm.Start()
 }
