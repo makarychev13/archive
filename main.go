@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"time"
 
+	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/joho/godotenv"
 	"github.com/makarychev13/archive/internal/buttons"
@@ -18,6 +20,10 @@ import (
 	tele "gopkg.in/tucnak/telebot.v3"
 )
 
+const (
+	conf = "local.env"
+)
+
 func main() {
 	logConfig := zap.NewDevelopmentConfig()
 	logConfig.DisableStacktrace = true
@@ -26,8 +32,8 @@ func main() {
 	defer logBuilder.Sync()
 
 	logger := logBuilder.Sugar()
-	if err := godotenv.Load(); err != nil {
-		logger.Fatalf("Не удалось загрузить конфиг: %v", err)
+	if err := godotenv.Load(conf); err != nil {
+		logger.Fatalf("Не удалось загрузить конфиг '%v': %v", conf, err)
 	}
 
 	b, err := tele.NewBot(tele.Settings{
@@ -43,7 +49,9 @@ func main() {
 		logger.Fatalf("Не удалось подключиться к БД: %v", err)
 	}
 
-	s := state.NewMemoryStorage()
+	s := state.NewRedisStorage(redis.Options{
+		Addr: fmt.Sprintf("%v:%v", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
+	})
 	c := ctx.NewMemoryStorage()
 	daysRepository := repository.NewDaysRepository(pool)
 

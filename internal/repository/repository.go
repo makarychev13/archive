@@ -1,12 +1,7 @@
 package repository
 
 import (
-	"errors"
 	"time"
-)
-
-var (
-	ErrDayAlreadyCompleted = errors.New("день уже завершён")
 )
 
 type Days interface {

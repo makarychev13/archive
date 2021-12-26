@@ -15,7 +15,8 @@ const (
 )
 
 var (
-	ErrAlreadyExists = errors.New("не удалось добавить запись из-за уникального констрейта")
+	ErrAlreadyExists       = errors.New("не удалось добавить запись из-за уникального констрейта")
+	ErrDayAlreadyCompleted = errors.New("день уже завершён")
 )
 
 type PgDaysRepository struct {

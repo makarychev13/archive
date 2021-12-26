@@ -6,7 +6,7 @@ import (
 	"github.com/brianvoe/gofakeit/v6"
 )
 
-func Test_Set_NewEntity_Success(t *testing.T) {
+func TestMemoryStorage_SetNewEntity(t *testing.T) {
 	var (
 		state    = gofakeit.LetterN(10)
 		entityId = gofakeit.Int64()
@@ -19,12 +19,12 @@ func Test_Set_NewEntity_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Set(%v, \"%v\") вернул ошибку: \"%v\"", entityId, state, err)
 	}
-	if currState, _ := storage.states[entityId]; currState != state {
+	if currState := storage.states[entityId]; currState != state {
 		t.Fatalf("Set(%v, \"%v\") отработал правильно, но текущее значение стейта равно \"%v\"", entityId, state, currState)
 	}
 }
 
-func Test_Set_ExistEntity_Success(t *testing.T) {
+func TestMemoryStorage_SetExistEntity(t *testing.T) {
 	var (
 		prevState = gofakeit.LetterN(10)
 		newState  = gofakeit.LetterN(10)
@@ -42,12 +42,12 @@ func Test_Set_ExistEntity_Success(t *testing.T) {
 	if err2 != nil {
 		t.Fatalf("Set(%v, \"%v\") вернул ошибку: \"%v\"", entityId, prevState, err2)
 	}
-	if currState, _ := storage.states[entityId]; currState != newState {
+	if currState := storage.states[entityId]; currState != newState {
 		t.Fatalf("Set(%v, \"%v\") отработал правильно, но текущее значение стейта равно \"%v\"", entityId, newState, currState)
 	}
 }
 
-func Test_Clear_ExistEntity_Success(t *testing.T) {
+func TestMemoryStorage_ClearExistEntity(t *testing.T) {
 	var (
 		state    = gofakeit.LetterN(10)
 		entityId = gofakeit.Int64()
@@ -66,7 +66,7 @@ func Test_Clear_ExistEntity_Success(t *testing.T) {
 	}
 }
 
-func Test_Clear_NotExistEntity_Success(t *testing.T) {
+func TestMemoryStorage_ClearNotExistEntity(t *testing.T) {
 	entityId := gofakeit.Int64()
 
 	storage := NewMemoryStorage()
@@ -81,7 +81,7 @@ func Test_Clear_NotExistEntity_Success(t *testing.T) {
 	}
 }
 
-func Test_Current_NotExistEntity_EmptyState(t *testing.T) {
+func TestMemoryStorage_CurrentNotExistEntity(t *testing.T) {
 	entityId := gofakeit.Int64()
 
 	storage := NewMemoryStorage()
@@ -96,7 +96,7 @@ func Test_Current_NotExistEntity_EmptyState(t *testing.T) {
 	}
 }
 
-func Test_Current_ExistEntity_Success(t *testing.T) {
+func TestMemoryStorage_CurrentExistEntity(t *testing.T) {
 	var (
 		entityId = gofakeit.Int64()
 		state    = gofakeit.LetterN(10)
