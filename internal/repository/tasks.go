@@ -30,15 +30,17 @@ func (r *PgTasksRepository) Save(telegramID int64, name string, date time.Time) 
 	return taskID, err
 }
 
-func (r *PgTasksRepository) Complete(taskID int64, date time.Time) error {
+func (r *PgTasksRepository) Complete(taskID int64, date time.Time) (string, error) {
 	sql :=
 		`UPDATE "tasks"
 		 SET "end" = $1
-		 WHERE "id" = $2`
+		 WHERE "id" = $2
+		 RETURNING "name"`
 
-	_, err := r.pool.Exec(context.Background(), sql, date, taskID)
+	var name string
+	err := r.pool.QueryRow(context.Background(), sql, date, taskID).Scan(&name)
 
-	return err
+	return name, err
 }
 
 func (r *PgTasksRepository) Remove(taskID int64) error {

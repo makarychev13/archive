@@ -72,7 +72,6 @@ func main() {
 
 	fsm := state.NewMachine(s, b)
 	fsm.Register(waitTask, init, common)
-	fsm.Start()
 
-	logger.Infof("Бот успешно запущен")
+	fsm.Start()
 }

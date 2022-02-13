@@ -11,6 +11,6 @@ type Days interface {
 
 type Tasks interface {
 	Save(telegramID int64, name string, date time.Time) (int64, error)
-	Complete(taskID int64, date time.Time) error
+	Complete(taskID int64, date time.Time) (string, error)
 	Remove(taskID int64) error
 }
