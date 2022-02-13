@@ -17,51 +17,46 @@ const (
 var (
 	ErrAlreadyExists       = errors.New("не удалось добавить запись из-за уникального констрейта")
 	ErrDayAlreadyCompleted = errors.New("день уже завершён")
+	ErrAnotherDayStarted   = errors.New("начат уже другой день")
 )
 
-type PgDaysRepository struct {
+type DaysPg struct {
 	pool *pgxpool.Pool
 }
 
-func NewDaysRepository(p *pgxpool.Pool) *PgDaysRepository {
-	return &PgDaysRepository{p}
+func NewDaysRepository(p *pgxpool.Pool) *DaysPg {
+	return &DaysPg{p}
 }
 
-func (r *PgDaysRepository) Save(telegramID int64, date time.Time) error {
+func (r *DaysPg) Save(telegramID int64, date time.Time) error {
 	sql :=
 		`INSERT INTO "days"
 		("telegram_id", "date", "start")
 		VALUES($1, $2, $3)`
 
 	_, err := r.pool.Exec(context.Background(), sql, telegramID, date, date)
-	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == alreadyExistsCode {
-			return ErrAlreadyExists
-		}
 
-		return err
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == alreadyExistsCode {
+		return ErrAlreadyExists
 	}
 
-	return nil
+	return err
 }
 
-func (r *PgDaysRepository) CompleteDay(telegramID int64, date, end time.Time) error {
+func (r *DaysPg) CompleteDay(telegramID int64, end time.Time) error {
 	sql :=
 		`UPDATE "days"
 		 SET "end" = $1
-		 FROM (SELECT "id" FROM "days" WHERE "date" = $2 AND "end" IS NULL AND "telegram_id" = $3) AS "cte"
+		 FROM (SELECT "id" FROM "days" WHERE "end" IS NULL AND "telegram_id" = $2) AS "cte"
 		 WHERE "cte"."id" = "days"."id"
-		 returning days.id`
+		 RETURNING "days"."id"`
 
 	var dayID int
-	err := r.pool.QueryRow(context.Background(), sql, end, date, telegramID).Scan(&dayID)
-	if err == pgx.ErrNoRows {
+	err := r.pool.QueryRow(context.Background(), sql, end, telegramID).Scan(&dayID)
+	if errors.Is(pgx.ErrNoRows, err) {
 		return ErrDayAlreadyCompleted
 	}
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }

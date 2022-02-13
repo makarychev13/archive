@@ -13,7 +13,6 @@ import (
 	"github.com/makarychev13/archive/internal/handlers"
 	"github.com/makarychev13/archive/internal/repository"
 	"github.com/makarychev13/archive/internal/states"
-	"github.com/makarychev13/archive/pkg/ctx"
 	"github.com/makarychev13/archive/pkg/state"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -44,7 +43,7 @@ func main() {
 		logger.Fatalf("Не удалось запустить бота: %v", err)
 	}
 
-	pool, err := pgxpool.Connect(context.Background(), `postgresql://localhost:5432/archive?sslmode=disable&user=local&password=local_password`)
+	pool, err := pgxpool.Connect(context.Background(), fmt.Sprintf("postgresql://%v:%v/%v?sslmode=disable&user=%v&password=%v", os.Getenv("PG_HOST"), os.Getenv("PG_POST"), os.Getenv("PG_DATABASE"), os.Getenv("PG_USER"), os.Getenv("PG_PASSWORD")))
 	if err != nil {
 		logger.Fatalf("Не удалось подключиться к БД: %v", err)
 	}
@@ -52,12 +51,10 @@ func main() {
 	s := state.NewRedisStorage(redis.Options{
 		Addr: fmt.Sprintf("%v:%v", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT")),
 	})
-	c := ctx.NewMemoryStorage()
-	daysRepository := repository.NewDaysRepository(pool)
 
 	initHandler := handlers.NewInitHandler(s)
-	tasksHandler := handlers.NewTaskHandler(s)
-	dayHandler := handlers.NewDayHandler(s, daysRepository, *logger, c)
+	tasksHandler := handlers.NewTaskHandler(s, repository.NewTasksRepository(pool), *logger)
+	dayHandler := handlers.NewDayHandler(s, repository.NewDaysRepository(pool), *logger)
 
 	common := state.NewCommonState()
 	common.OnCallback(buttons.CancelTask, tasksHandler.Cancel)
@@ -76,4 +73,6 @@ func main() {
 	fsm := state.NewMachine(s, b)
 	fsm.Register(waitTask, init, common)
 	fsm.Start()
+
+	logger.Infof("Бот успешно запущен")
 }

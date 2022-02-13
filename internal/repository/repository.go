@@ -6,9 +6,11 @@ import (
 
 type Days interface {
 	Save(telegramID int64, date time.Time) error
-	CompleteDay(telegramID int64, date, end time.Time) error
+	CompleteDay(telegramID int64, end time.Time) error
 }
 
 type Tasks interface {
-	New(name string, date time.Time) error
+	Save(telegramID int64, name string, date time.Time) (int64, error)
+	Complete(taskID int64, date time.Time) error
+	Remove(taskID int64) error
 }

@@ -40,7 +40,7 @@ func TestMemoryStorage_SetExistEntity(t *testing.T) {
 		t.Fatalf("Set(%v, \"%v\") вернул ошибку: \"%v\"", entityId, prevState, err1)
 	}
 	if err2 != nil {
-		t.Fatalf("Set(%v, \"%v\") вернул ошибку: \"%v\"", entityId, prevState, err2)
+		t.Fatalf("Set(%v, \"%v\") вернул ошибку: \"%v\"", entityId, newState, err2)
 	}
 	if currState := storage.states[entityId]; currState != newState {
 		t.Fatalf("Set(%v, \"%v\") отработал правильно, но текущее значение стейта равно \"%v\"", entityId, newState, currState)
@@ -110,7 +110,7 @@ func TestMemoryStorage_CurrentExistEntity(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Current(%v) вернул ошибку: %v", entityId, err)
 	}
-	if err != nil {
+	if currState != state {
 		t.Fatalf("Current(%v) отработал правильно, но текущее значенпе стейта равно: \"%v\"", entityId, currState)
 	}
 }

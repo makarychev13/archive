@@ -12,8 +12,8 @@ type HandlersMap = map[stateName]handler
 
 //Machine отвечает за регистрацию стейтов и выбор стейта при обработке сообщения.
 type Machine struct {
-	storage Storage
-	bot     *tele.Bot
+	storage  Storage
+	bot      *tele.Bot
 	handlers HandlersMap
 	common   *handler
 }
