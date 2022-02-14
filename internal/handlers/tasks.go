@@ -1,13 +1,11 @@
 package handlers
 
 import (
-	"errors"
-	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/makarychev13/archive/internal/buttons"
+	"github.com/makarychev13/archive/internal/domain"
 	"github.com/makarychev13/archive/internal/messages"
 	"github.com/makarychev13/archive/internal/repository"
 	"github.com/makarychev13/archive/pkg/state"
@@ -16,8 +14,7 @@ import (
 )
 
 var (
-	moscowTZ   = time.FixedZone("UTC+3", 3*60*60)
-	timeFormat = "15:04"
+	moscowTZ = time.FixedZone("UTC+3", 3*60*60)
 )
 
 type TaskHandler struct {
@@ -32,17 +29,15 @@ func NewTaskHandler(s state.Storage, t repository.Tasks, l zap.SugaredLogger) Ta
 
 //AddTask обрабатывает сообщение о добавлении нового задания.
 func (h *TaskHandler) AddTask(c tele.Context) error {
-	now := time.Now().UTC().In(moscowTZ)
+	task := domain.NewTask(c.Text(), time.Now().UTC().In(moscowTZ))
 
-	taskID, err := h.tasks.Save(c.Message().Sender.ID, c.Text(), now)
+	taskID, err := h.tasks.Save(c.Message().Sender.ID, task)
 	if err != nil {
 		h.log.Errorf("Не удалось сохранить в БД задание: %v", err)
 		return c.Send(messages.InternalErrMsg)
 	}
 
-	reply := fmt.Sprintf("<b>%v</b>\n\nНачало: %v", c.Text(), now.Format(timeFormat))
-
-	return c.Send(reply, &tele.SendOptions{
+	return c.Send(task.DisplayStartMsg(), &tele.SendOptions{
 		ParseMode: tele.ModeHTML,
 		ReplyMarkup: &tele.ReplyMarkup{
 			InlineKeyboard: [][]tele.InlineButton{
@@ -67,7 +62,7 @@ func (h *TaskHandler) AddTask(c tele.Context) error {
 
 //Cancel обрабатывает кнопку отмены задания.
 func (h *TaskHandler) Cancel(c tele.Context) error {
-	taskID, err := h.getTaskID(c)
+	taskID, err := domain.NewTaskIDFromMessage(c)
 	if err != nil {
 		h.log.Errorf("Не удалось из кнопки получить номер задания: %v", err)
 		return c.Send(messages.InternalErrMsg)
@@ -87,46 +82,21 @@ func (h *TaskHandler) Cancel(c tele.Context) error {
 
 //Complete обрабатывает кнопку завершения задания.
 func (h *TaskHandler) Complete(c tele.Context) error {
-	taskID, err := h.getTaskID(c)
+	taskID, err := domain.NewTaskIDFromMessage(c)
 	if err != nil {
 		h.log.Errorf("Не удалось из кнопки получить номер задания: %v", err)
 		return c.Send(messages.InternalErrMsg)
 	}
 
-	now := time.Now().UTC().In(moscowTZ)
-
-	taskName, err := h.tasks.Complete(taskID, now)
+	task, err := h.tasks.Complete(taskID, time.Now().UTC().In(moscowTZ))
 	if err != nil {
 		h.log.Errorf("Не удалось завершить в БД задание %v: %v", taskID, err)
 		return c.Send(messages.InternalErrMsg)
 	}
 
-	reply := h.endTaskReply(c, taskName, now.Format(timeFormat))
-	if _, err := c.Bot().Edit(c.Message(), reply, &tele.SendOptions{ParseMode: tele.ModeHTML}); err != nil {
+	if _, err := c.Bot().Edit(c.Message(), task.DisplayEndMsg(), &tele.SendOptions{ParseMode: tele.ModeHTML}); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func (h *TaskHandler) getTaskID(c tele.Context) (int64, error) {
-	callback := c.Callback()
-	if callback == nil {
-		return 0, errors.New("не удалось получить номер задания, так как в сообщении не оказалось кнопки")
-	}
-
-	text := strings.Split(callback.Data, "|")
-	if len(text) != 2 {
-		return 0, errors.New("не удалось получить номер задания, так как данные в кнопке не соответствуют паттерну '%w|%w'")
-	}
-
-	return strconv.ParseInt(text[1], 10, 64)
-}
-
-func (h *TaskHandler) endTaskReply(c tele.Context, task, end string) string {
-	boldTask := fmt.Sprintf("<b>%v</b>", task)
-	editedMsg := strings.ReplaceAll(c.Text(), task, boldTask)
-	newMsg := fmt.Sprintf("%v\nКонец: %v", editedMsg, end)
-
-	return newMsg
 }

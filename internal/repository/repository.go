@@ -2,6 +2,8 @@ package repository
 
 import (
 	"time"
+
+	"github.com/makarychev13/archive/internal/domain"
 )
 
 type Days interface {
@@ -10,7 +12,7 @@ type Days interface {
 }
 
 type Tasks interface {
-	Save(telegramID int64, name string, date time.Time) (int64, error)
-	Complete(taskID int64, date time.Time) (string, error)
-	Remove(taskID int64) error
+	Save(telegramID int64, task domain.Task) (domain.TaskID, error)
+	Complete(id domain.TaskID, date time.Time) (*domain.Task, error)
+	Remove(id domain.TaskID) error
 }
