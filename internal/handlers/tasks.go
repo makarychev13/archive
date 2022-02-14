@@ -101,7 +101,7 @@ func (h *TaskHandler) Complete(c tele.Context) error {
 		return c.Send(messages.InternalErrMsg)
 	}
 
-	reply := edit(c, taskName, now.Format(timeFormat))
+	reply := h.endTaskReply(c, taskName, now.Format(timeFormat))
 	if _, err := c.Bot().Edit(c.Message(), reply, &tele.SendOptions{ParseMode: tele.ModeHTML}); err != nil {
 		return err
 	}
@@ -123,7 +123,7 @@ func (h *TaskHandler) getTaskID(c tele.Context) (int64, error) {
 	return strconv.ParseInt(text[1], 10, 64)
 }
 
-func edit(c tele.Context, task, end string) string {
+func (h *TaskHandler) endTaskReply(c tele.Context, task, end string) string {
 	boldTask := fmt.Sprintf("<b>%v</b>", task)
 	editedMsg := strings.ReplaceAll(c.Text(), task, boldTask)
 	newMsg := fmt.Sprintf("%v\nКонец: %v", editedMsg, end)

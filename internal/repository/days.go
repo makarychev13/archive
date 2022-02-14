@@ -24,7 +24,7 @@ type DaysPg struct {
 	pool *pgxpool.Pool
 }
 
-func NewDaysRepository(p *pgxpool.Pool) *DaysPg {
+func NewDaysPg(p *pgxpool.Pool) *DaysPg {
 	return &DaysPg{p}
 }
 

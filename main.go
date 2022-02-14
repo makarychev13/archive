@@ -53,8 +53,8 @@ func main() {
 	})
 
 	initHandler := handlers.NewInitHandler(s)
-	tasksHandler := handlers.NewTaskHandler(s, repository.NewTasksRepository(pool), *logger)
-	dayHandler := handlers.NewDayHandler(s, repository.NewDaysRepository(pool), *logger)
+	tasksHandler := handlers.NewTaskHandler(s, repository.NewPgTasks(pool), *logger)
+	dayHandler := handlers.NewDayHandler(s, repository.NewDaysPg(pool), *logger)
 
 	common := state.NewCommonState()
 	common.OnCallback(buttons.CancelTask, tasksHandler.Cancel)

@@ -7,15 +7,15 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-type PgTasksRepository struct {
+type TasksPg struct {
 	pool *pgxpool.Pool
 }
 
-func NewTasksRepository(pool *pgxpool.Pool) *PgTasksRepository {
-	return &PgTasksRepository{pool}
+func NewPgTasks(pool *pgxpool.Pool) *TasksPg {
+	return &TasksPg{pool}
 }
 
-func (r *PgTasksRepository) Save(telegramID int64, name string, date time.Time) (int64, error) {
+func (r *TasksPg) Save(telegramID int64, name string, date time.Time) (int64, error) {
 	sql :=
 		`INSERT INTO "tasks"
 		 ("day_id", "name", "start")
@@ -30,7 +30,7 @@ func (r *PgTasksRepository) Save(telegramID int64, name string, date time.Time) 
 	return taskID, err
 }
 
-func (r *PgTasksRepository) Complete(taskID int64, date time.Time) (string, error) {
+func (r *TasksPg) Complete(taskID int64, date time.Time) (string, error) {
 	sql :=
 		`UPDATE "tasks"
 		 SET "end" = $1
@@ -43,7 +43,7 @@ func (r *PgTasksRepository) Complete(taskID int64, date time.Time) (string, erro
 	return name, err
 }
 
-func (r *PgTasksRepository) Remove(taskID int64) error {
+func (r *TasksPg) Remove(taskID int64) error {
 	sql :=
 		`DELETE FROM "tasks"
 		 WHERE "id" = $1`
