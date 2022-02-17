@@ -33,7 +33,7 @@ func (h *TaskHandler) AddTask(c tele.Context) error {
 
 	taskID, err := h.tasks.Save(c.Message().Sender.ID, task)
 	if err != nil {
-		h.log.Errorf("Не удалось сохранить в БД задание: %v", err)
+		h.log.Errorf("Не удалось сохранить в БД задание '%v': %v", task.Name, err)
 		return c.Send(messages.InternalErrMsg)
 	}
 

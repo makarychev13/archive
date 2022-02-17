@@ -8,6 +8,10 @@ import (
 	"github.com/makarychev13/archive/internal/domain"
 )
 
+const (
+	timeFormat = "15:04:05.999999999-07"
+)
+
 type TasksPg struct {
 	pool *pgxpool.Pool
 }
@@ -39,10 +43,23 @@ func (r *TasksPg) Complete(id domain.TaskID, date time.Time) (*domain.Task, erro
 		 RETURNING "name", "start", "end"`
 
 	var name string
-	var start, end time.Time
-	err := r.pool.QueryRow(context.Background(), sql, date, id).Scan(&name, &start, &end)
+	var start, end string
 
-	task := domain.NewFinishedTask(name, start, end)
+	if err := r.pool.QueryRow(context.Background(), sql, date, id).Scan(&name, &start, &end); err != nil {
+		return nil, err
+	}
+
+	startTime, err := time.Parse(timeFormat, start)
+	if err != nil {
+		return nil, err
+	}
+
+	endTime, err := time.Parse(timeFormat, end)
+	if err != nil {
+		return nil, err
+	}
+
+	task := domain.NewFinishedTask(name, startTime.In(time.FixedZone("UTC+3", 3*60*60)), endTime.In(time.FixedZone("UTC+3", 3*60*60)))
 
 	return &task, err
 }
