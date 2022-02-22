@@ -26,7 +26,6 @@ var (
 			},
 			{
 				tele.ReplyButton{Text: buttons.EndDay},
-				tele.ReplyButton{Text: buttons.Settings},
 			},
 		},
 	}
